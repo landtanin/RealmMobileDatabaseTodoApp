@@ -77,22 +77,21 @@ class MasterViewController: UITableViewController {
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return objects.count
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {      // (4)
+        return remindersList.count
     }
-
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-
-        let object = objects[indexPath.row] as! NSDate
-        cell.textLabel!.text = object.description
+        
+        let item = remindersList[indexPath.row]
+        
+        cell.textLabel!.text = item.name        // (5)
+        cell.textLabel!.textColor = item.done == false ? UIColor.black : UIColor.lightGray
+        
         return cell
-    }
-
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+        
     }
 
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
@@ -103,6 +102,39 @@ class MasterViewController: UITableViewController {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
         }
     }
+    
+    // MARK: database editing
+    
+    override func tableView(_ tableView: UITableView,
+                            didSelectRowAt indexPath: IndexPath) {
+        
+        let item = remindersList[indexPath.row]
+        try! self.realm.write({     // (6)
+            item.done = !item.done
+        })
+        
+        //refresh rows
+        tableView.reloadRows(at: [indexPath], with: .automatic)
+        
+    }
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        
+        if (editingStyle == .delete){
+            let item = remindersList[indexPath.row]
+            try! self.realm.write({
+                self.realm.delete(item)     // (7)
+            })
+            
+            tableView.deleteRows(at:[indexPath], with: .automatic)
+            
+        }
+        
+    }
+    
 
 
 }

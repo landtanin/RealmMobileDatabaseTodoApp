@@ -112,7 +112,11 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Master" id="Zdf-7t-Un8">
-                        <barButtonItem key="rightBarButtonItem" title="Add" id="svI-Rn-b51"/>
+                        <barButtonItem key="rightBarButtonItem" title="Add" id="svI-Rn-b51">
+                            <connections>
+                                <action selector="addReminder:" destination="7bK-jq-Zjz" id="gS9-HP-8AP"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="addBtn" destination="svI-Rn-b51" id="vKJ-SY-lEC"/>

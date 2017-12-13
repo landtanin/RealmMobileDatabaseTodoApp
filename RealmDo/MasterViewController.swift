@@ -9,21 +9,21 @@
 import UIKit
 
 class MasterViewController: UITableViewController {
-
+    
     // Init Realm 1/3
     var realm : Realm!
     
     @IBOutlet var addBtn: UIBarButtonItem!
     var detailViewController: DetailViewController? = nil
     var objects = [Any]()
-
+    
     // init Realm 2/3, lazy-load the reminderList
     var remindersList: Results<Reminder> {
         get {
             return realm.objects(Reminder.self)
         }
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -32,7 +32,7 @@ class MasterViewController: UITableViewController {
         
         // Do any additional setup after loading the view, typically from a nib.
         navigationItem.leftBarButtonItem = editButtonItem
-
+        
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(insertNewObject(_:)))
         navigationItem.rightBarButtonItem = addButton
         if let split = splitViewController {
@@ -40,26 +40,26 @@ class MasterViewController: UITableViewController {
             detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
     }
-
+    
     override func viewWillAppear(_ animated: Bool) {
         clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
         super.viewWillAppear(animated)
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
+    
     @objc
     func insertNewObject(_ sender: Any) {
         objects.insert(NSDate(), at: 0)
         let indexPath = IndexPath(row: 0, section: 0)
         tableView.insertRows(at: [indexPath], with: .automatic)
     }
-
+    
     // MARK: - Segues
-
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showDetail" {
             if let indexPath = tableView.indexPathForSelectedRow {
@@ -71,9 +71,9 @@ class MasterViewController: UITableViewController {
             }
         }
     }
-
+    
     // MARK: - Table View
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -93,7 +93,7 @@ class MasterViewController: UITableViewController {
         return cell
         
     }
-
+    
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             objects.remove(at: indexPath.row)
@@ -103,13 +103,13 @@ class MasterViewController: UITableViewController {
         }
     }
     
-    // MARK: database editing
+    // MARK: - Database Editing
     
     override func tableView(_ tableView: UITableView,
                             didSelectRowAt indexPath: IndexPath) {
         
         let item = remindersList[indexPath.row]
-        try! self.realm.write({     // (6)
+        try! self.realm.write({     // (6), write new thing to database
             item.done = !item.done
         })
         
@@ -126,7 +126,7 @@ class MasterViewController: UITableViewController {
         if (editingStyle == .delete){
             let item = remindersList[indexPath.row]
             try! self.realm.write({
-                self.realm.delete(item)     // (7)
+                self.realm.delete(item)     // (7), delete thing from database
             })
             
             tableView.deleteRows(at:[indexPath], with: .automatic)
@@ -135,7 +135,42 @@ class MasterViewController: UITableViewController {
         
     }
     
-
-
+    // MARK: - Add new reminder
+    
+    @IBAction func addReminder(_ sender: Any) {
+        
+        let alertVC : UIAlertController = UIAlertController(title: "New Reminder", message: "What do you want to remember?", preferredStyle: .alert)
+        
+        alertVC.addTextField { (UITextField) in
+            
+        }
+        
+        let cancelAction = UIAlertAction.init(title: "Cancel", style: .destructive, handler: nil)
+        
+        alertVC.addAction(cancelAction)
+        
+        //Alert action closure
+        let addAction = UIAlertAction.init(title: "Add", style: .default) { (UIAlertAction) -> Void in
+            
+            let textFieldReminder = (alertVC.textFields?.first)! as UITextField
+            
+            let reminderItem = Reminder()       // (8)
+            reminderItem.name = textFieldReminder.text!
+            reminderItem.done = false
+            
+            // We are adding the reminder to our database
+            try! self.realm.write({
+                self.realm.add(reminderItem)    // (9)
+                
+                self.tableView.insertRows(at: [IndexPath.init(row: self.remindersList.count-1, section: 0)], with: .automatic)
+            })
+            
+        }
+        
+        alertVC.addAction(addAction)
+        
+        present(alertVC, animated: true, completion: nil)
+        
+    }
 }
 

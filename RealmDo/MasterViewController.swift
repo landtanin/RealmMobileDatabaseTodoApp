@@ -10,12 +10,26 @@ import UIKit
 
 class MasterViewController: UITableViewController {
 
+    // Init Realm 1/3
+    var realm : Realm!
+    
+    @IBOutlet var addBtn: UIBarButtonItem!
     var detailViewController: DetailViewController? = nil
     var objects = [Any]()
 
+    // init Realm 2/3, lazy-load the reminderList
+    var remindersList: Results<Reminder> {
+        get {
+            return realm.objects(Reminder.self)
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // init Realm 3/3, instantiate Realm variable
+        realm = try! Realm()
+        
         // Do any additional setup after loading the view, typically from a nib.
         navigationItem.leftBarButtonItem = editButtonItem
 
